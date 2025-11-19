@@ -2,6 +2,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { gqlFetch } from "@/lib/graphql";
+import ReverbNationWidget from "./components/ReverbNationWidget";
+import PageBanner from "./components/PageBanner";
 
 type Post = {
   id: string;
@@ -74,6 +76,7 @@ export default async function Home() {
             >
               View Upcoming Shows
             </Link>
+
           </div>
         </div>
       </section>
@@ -90,9 +93,11 @@ export default async function Home() {
         />
       </section>
 
+
+        
       {/* LATEST POSTS */}
       <section className="max-w-7xl mx-auto px-6 py-20">
-        <h2 className="text-center text-5xl font-black text-blood-500 mb-16">LATEST UPDATES</h2>
+        <PageBanner title="LATEST UPDATES" containerClassName="max-w-7xl" />
         <div className="grid md:grid-cols-3 gap-10">
           {posts.map((post) => (
             <article key={post.id} className="border-2 border-blood-800 rounded-xl overflow-hidden bg-black/60">

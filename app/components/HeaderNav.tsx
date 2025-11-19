@@ -25,6 +25,10 @@ export default function HeaderNav({ navItems, siteTitle }: { navItems: NavItem[]
           >
             ☰
           </button>
+
+
+
+
         </div>
 
         <nav

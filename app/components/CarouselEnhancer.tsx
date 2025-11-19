@@ -32,15 +32,17 @@ export default function CarouselEnhancer() {
 
           const firstSlide = track.querySelector("figure");
           const slideWidth = firstSlide ? (firstSlide as HTMLElement).getBoundingClientRect().width + 8 : 260;
-          const startOffset = slideWidth * originals.length;
-          const maxScroll = slideWidth * (track.children.length - originals.length);
+          const totalWidth = slideWidth * originals.length;
+          const startOffset = totalWidth;
+          const tolerance = slideWidth * 0.25;
           track.scrollLeft = startOffset;
 
           const loopScroll = () => {
-            if (track.scrollLeft <= slideWidth * 0.5) {
-              track.scrollLeft = startOffset + track.scrollLeft;
-            } else if (track.scrollLeft >= maxScroll - slideWidth * 0.5) {
-              track.scrollLeft = track.scrollLeft - startOffset;
+            const relative = track.scrollLeft - startOffset;
+            if (relative <= -totalWidth + tolerance) {
+              track.scrollLeft += totalWidth;
+            } else if (relative >= totalWidth - tolerance) {
+              track.scrollLeft -= totalWidth;
             }
           };
 

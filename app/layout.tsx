@@ -7,6 +7,9 @@ import CarouselEnhancer from "./components/CarouselEnhancer";
 import HeaderNav from "./components/HeaderNav";
 import { Providers } from "./providers";
 
+
+
+
 export const metadata: Metadata = {
   title: "Big Tooth Comb",
   description: "Garage rock from the depths",
@@ -16,7 +19,8 @@ type MenuNode = { id: string; label: string; path?: string | null; url?: string 
 type PageNode = { id: string; title: string; uri?: string | null };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  let siteTitle = "BIG TOOTH COMB";
+  let siteName = "Big Tooth Comb";
+  let siteTitle = siteName.toUpperCase();
   let siteSlogan = "NO GODS - NO MANAGERS - JUST NOISE";
   let navItems: { id: string; label: string; href: string }[] = []
   const cleanSlogan = (s: string | undefined) =>
@@ -37,7 +41,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       }
     `);
 
-    siteTitle = data?.generalSettings?.title?.toUpperCase() ?? siteTitle;
+    siteName = data?.generalSettings?.title || siteName;
+    siteTitle = siteName.toUpperCase();
     siteSlogan = cleanSlogan(data?.generalSettings?.description) || siteSlogan;
 
     const menu = data?.menus?.nodes?.[0]?.menuItems?.nodes ?? [];
@@ -93,10 +98,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </nav>
               )}
               <div className="mt-10 space-y-4 text-sm text-gray-300">
-                <div className="font-bold uppercase tracking-widest text-blood-300">Musician/Band — Contact</div>
+                <div className="font-bold uppercase tracking-widest text-blood-300">Contact</div>
                 <div className="flex flex-col gap-1">
-                  <span>(619) 518-8293 · Mobile</span>
-                  <a href="mailto:btcmk@sbcglobal.net" className="text-blood-300 hover:text-white">btcmk@sbcglobal.net · Email</a>
+                  <span><a href="tel:619-518-8293" className="text-blood-300 hover:text-white">(619) 518-8293</a></span>
+                  <a href="mailto:btcmk@sbcglobal.net" className="text-blood-300 hover:text-white">btcmk@sbcglobal.net</a>
+                  <div className="font-bold uppercase tracking-widest text-blood-300 pt-4 pb-3">Follow Us</div>
+                  <a
+                    href="https://www.facebook.com/profile.php?id=100063616806973"
+                    className="text-blood-300 hover:text-white"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Facebook
+                  </a>
+                  <a
+                    href="https://www.instagram.com/bigtoothcomb"
+                    className="text-blood-300 hover:text-white"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Instagram
+                  </a>
                   <a href="https://www.reverbnation.com/bigtoothcomb9" className="text-blood-300 hover:text-white" target="_blank" rel="noreferrer">
                     ReverbNation
                   </a>
@@ -105,7 +127,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="mt-10">
                 <iframe src="https://www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2Fprofile.php%3Fid=100063616806973&width=200&layout=button_count&action=like&size=large&share=true&height=46" width="200" height="46" className="mx-auto border-0" scrolling="no" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" title="Like Big Tooth Comb on Facebook" />
               </div>
-              <p className="mt-10 text-xs uppercase tracking-widest text-gray-600">(c) {new Date().getFullYear()} Big Tooth Comb - All rights reserved (or whatever)</p>
+              <p className="mt-10 text-xs uppercase tracking-widest text-gray-600">
+                (c) {new Date().getFullYear()} {siteName} - All rights reserved. Website by <a href="https://858webdesign.com">858 Web Design</a>
+              </p>
             </div>
           </footer>
           <CarouselEnhancer />

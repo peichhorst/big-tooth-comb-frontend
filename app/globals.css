@@ -156,8 +156,12 @@ main p {
 .fc-theme-standard th {
   border-color: #450a0a !important;
 }
+.fc .fc-toolbar-title {
+  padding-top: 1.25rem;
+  color: #f2851f;
+}
 .fc .fc-daygrid-day-number {
-  color: #ef4444 !important;
+  color: #f2851f !important;
 }
 .fc-col-header-cell {
   background: #1f1f1f;
@@ -165,16 +169,16 @@ main p {
   font-weight: bold;
 }
 .fc-button-primary {
-  background: #991b1b !important;
+  background: #f2851f !important;
   border: none !important;
   color: white !important;
 }
 .fc-button-primary:hover,
 .fc-button-primary:not(:disabled):active {
-  background: #ef4444 !important;
+  background: #ffb45a !important;
 }
 .fc-event.has-tickets {
-  background: #991b1b !important;
+  background: #f2851f !important;
   border: none !important;
   color: white !important;
   ;

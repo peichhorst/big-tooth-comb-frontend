@@ -4,7 +4,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-type Event = {
+export type CalendarEvent = {
   title: string;
   date: string;
   slug?: string;
@@ -13,7 +13,7 @@ type Event = {
   ticketsUrl?: string | null;
 };
 
-export default function ShowCalendar({ events }: { events: Event[] }) {
+export default function ShowCalendar({ events }: { events: CalendarEvent[] }) {
   const calendarEvents = (events || [])
     .filter((ev) => ev.date)
     .map((ev) => ({

@@ -2,6 +2,9 @@
 
 import { ReactNode } from "react";
 import { Roboto_Mono, Orbitron } from "next/font/google";
+import MusicPlayer from './components/MusicPlayer';
+
+
 
 const robotoMono = Roboto_Mono({
   subsets: ["latin"],
@@ -18,7 +21,8 @@ const orbitron = Orbitron({
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <div className={`${robotoMono.variable} ${orbitron.variable}`}>
+        <div className={`${robotoMono.variable} ${orbitron.variable}`}>
+      <MusicPlayer />  
       {children}
     </div>
   );
