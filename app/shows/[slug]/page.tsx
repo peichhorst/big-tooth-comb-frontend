@@ -2,6 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { gqlFetch } from "@/lib/graphql";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const QUERY = `
   query ShowBySlug($slug: ID!) {
     show(id: $slug, idType: SLUG) {
@@ -29,7 +32,7 @@ type Show = {
 };
 
 export default async function ShowPage({ params }: { params: { slug: string } }) {
-  const { slug } = await params;
+  const { slug } = params;
   if (!slug) {
     notFound();
   }

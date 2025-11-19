@@ -9,8 +9,8 @@ type WpPage = {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function WpPage({ params }: { params: Promise<{ slug?: string }> }) {
-  const { slug = "" } = await params;
+export default async function WpPage({ params }: { params: { slug?: string } }) {
+  const { slug = "" } = params;
   if (!slug || slug === "posts") {
     notFound();
   }

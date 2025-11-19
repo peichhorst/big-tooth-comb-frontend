@@ -3,6 +3,9 @@ import Link from "next/link";
 import { gqlFetch } from "@/lib/graphql";
 import ShowCalendar from "../components/ShowCalendar";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const QUERY = `
   query Shows {
     shows(first: 100, where: { orderby: { field: DATE, order: ASC } }) {

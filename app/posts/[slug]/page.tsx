@@ -1,12 +1,15 @@
 import { notFound } from "next/navigation";
 import { fetchPostBySlug } from "@/lib/wp-api";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function PostPage({
   params,
 }: {
-  params: { slug: string } | Promise<{ slug: string }>;
+  params: { slug: string };
 }) {
-  const { slug } = await params;
+  const { slug } = params;
   if (!slug) {
     notFound();
   }
