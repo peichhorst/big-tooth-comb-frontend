@@ -10,8 +10,8 @@ export default function HeaderNav({ navItems, siteTitle }: { navItems: NavItem[]
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-blood-700 bg-black/95 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+    <header className="relative bg-black border-b border-blood-700">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-0 py-5">
         <Link href="/" className="flex items-center">
           <Image src="/BTC Logo.png" alt={siteTitle} width={180} height={90} className="h-auto w-auto drop-shadow-2xl" priority />
         </Link>

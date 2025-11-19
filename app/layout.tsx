@@ -17,8 +17,10 @@ type PageNode = { id: string; title: string; uri?: string | null };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   let siteTitle = "BIG TOOTH COMB";
-  let siteSlogan = "NO GODS • NO MANAGERS • JUST NOISE";
-  let navItems: { id: string; label: string; href: string }[] = [];
+  let siteSlogan = "NO GODS - NO MANAGERS - JUST NOISE";
+  let navItems: { id: string; label: string; href: string }[] = []
+  const cleanSlogan = (s: string | undefined) =>
+    s ? s.replace(/&#0*39;|&#8217;|&apos;/gi, "'") : s;
 
   try {
     const data = await gqlFetch(`
@@ -36,7 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     `);
 
     siteTitle = data?.generalSettings?.title?.toUpperCase() ?? siteTitle;
-    siteSlogan = data?.generalSettings?.description || siteSlogan;
+    siteSlogan = cleanSlogan(data?.generalSettings?.description) || siteSlogan;
 
     const menu = data?.menus?.nodes?.[0]?.menuItems?.nodes ?? [];
     navItems = menu.length > 0
@@ -76,7 +78,30 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <footer className="relative z-10 border-t-2 border-blood-700 bg-gradient-to-t from-black to-black/90">
             <div className="mx-auto max-w-7xl px-6 py-16 text-center">
               <Image src="/BTC Logo.png" alt={siteTitle} width={180} height={90} className="mx-auto drop-shadow-2xl" priority />
-              <p className="mt-6 font-creepy text-2xl md:text-4xl text-blood-500 tracking-widest animate-pulse-slow">{siteSlogan}</p>
+              <p className="mt-6 font-creepy text-lg md:text-xl text-blood-500 tracking-widest animate-pulse-slow">{siteSlogan}</p>
+              {navItems.length > 0 && (
+                <nav className="mt-8 flex flex-wrap justify-center gap-3 text-sm uppercase tracking-widest text-blood-300">
+                  {navItems.map((item) => (
+                    <a
+                      key={item.id}
+                      href={item.href}
+                      className="rounded-full border border-blood-700 px-4 py-2 hover:border-blood-500 hover:text-white transition"
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </nav>
+              )}
+              <div className="mt-10 space-y-4 text-sm text-gray-300">
+                <div className="font-bold uppercase tracking-widest text-blood-300">Musician/Band — Contact</div>
+                <div className="flex flex-col gap-1">
+                  <span>(619) 518-8293 · Mobile</span>
+                  <a href="mailto:btcmk@sbcglobal.net" className="text-blood-300 hover:text-white">btcmk@sbcglobal.net · Email</a>
+                  <a href="https://www.reverbnation.com/bigtoothcomb9" className="text-blood-300 hover:text-white" target="_blank" rel="noreferrer">
+                    ReverbNation
+                  </a>
+                </div>
+              </div>
               <div className="mt-10">
                 <iframe src="https://www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2Fprofile.php%3Fid=100063616806973&width=200&layout=button_count&action=like&size=large&share=true&height=46" width="200" height="46" className="mx-auto border-0" scrolling="no" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" title="Like Big Tooth Comb on Facebook" />
               </div>
@@ -89,6 +114,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     </html>
   );
 }
+
+
 
 
 

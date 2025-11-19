@@ -18,6 +18,8 @@ export default async function Home() {
   let hero = "/hero-1.jpg";
   let content = "";
   let posts: Post[] = [];
+  const cleanSlogan = (s: string) =>
+    s?.replace(/&#0*39;|&#8217;|&apos;/gi, "'") ?? s;
 
   
   try {
@@ -59,12 +61,20 @@ export default async function Home() {
         style={{ backgroundImage: `linear-gradient(#0008,#0000), url('${hero}')` }}
       >
         <div className="text-center px-6 z-10">
-          <h1 className="glitch font-display text-7xl md:text-9xl font-black text-blood-500 drop-shadow-2xl">
+          <h1 className="glitch hero-glow font-display text-7xl md:text-9xl font-black text-white drop-shadow-2xl">
             {title}
           </h1>
-          <p className="mt-8 font-creepy text-4xl md:text-6xl text-blood-400 animate-pulse-slow">
-            {slogan}
+          <p className="mt-8 font-creepy text-4xl md:text-6xl text-white slogan-fade">
+            {cleanSlogan(slogan)}
           </p>
+          <div className="mt-10">
+            <Link
+              href="/shows"
+              className="inline-block bg-[#f2851f] text-black font-black px-8 py-3 rounded-full shadow-lg btn-glow"
+            >
+              View Upcoming Shows
+            </Link>
+          </div>
         </div>
       </section>
 

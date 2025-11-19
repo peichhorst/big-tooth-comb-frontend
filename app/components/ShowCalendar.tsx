@@ -28,22 +28,26 @@ export default function ShowCalendar({ events }: { events: Event[] }) {
       plugins={[dayGridPlugin, interactionPlugin]}
       initialView="dayGridMonth"
       headerToolbar={{
-        left: "prev,next today",
+        left: "today",
         center: "title",
-        right: "",
+        right: "prev,next",
       }}
       height="auto"
       events={calendarEvents}
       eventClick={(info) => {
         if (info.event.url) {
           info.jsEvent.preventDefault();
-          window.open(info.event.url, "_blank", "noopener,noreferrer");
+          window.location.href = info.event.url;
         }
       }}
       dayCellContent={(arg) => (
         <div className="text-blood-400 font-bold">{arg.dayNumberText}</div>
       )}
       eventClassNames="cursor-pointer hover:opacity-80 transition"
+      dayCellClassNames={(arg) => {
+        const hasEvent = calendarEvents.some((event) => event.start === arg.dateStr);
+        return hasEvent ? "has-event" : "";
+      }}
     />
   );
 }
