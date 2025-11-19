@@ -1,0 +1,17 @@
+query GetLatestPosts($first: Int = 6) {
+  posts(first: $first, where: { orderby: { field: DATE, order: DESC } }) {
+    nodes {
+      id
+      title
+      slug
+      excerpt
+      date
+      featuredImage {
+        node {
+          sourceUrl
+          altText
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,272 @@
+/* =============== KILLER ZERO-GAP GALLERY GRID =============== */
+.wp-block-gallery {
+  display: grid;
+  gap: 2px !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Target nested images specifically */
+.wp-block-gallery.has-nested-images.columns-default figure.wp-block-image {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1 1 auto !important;
+  min-width: 200px;
+  aspect-ratio: 1 / 1;
+}
+
+.wp-block-gallery figure {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1; /* Ensures consistent height */
+}
+
+/* Additional targeting for nested images */
+.wp-block-gallery.has-nested-images figure.wp-block-image {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.wp-block-gallery img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  display: block;
+  border-radius: 14px;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure nested images fill properly */
+.wp-block-gallery.has-nested-images.columns-default figure.wp-block-image img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  flex: none !important;
+}
+
+.wp-block-gallery figure:hover img {
+  transform: scale(1.06);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+/* Optional subtle hairline gaps */
+/*
+.wp-block-gallery.has-gaps-very-subtle {
+  gap: 2px !important;
+  background: #000;
+}
+*/
+
+/* =============== MOBILE CAROUSEL MODE =============== */
+.wp-block-gallery[data-carousel],
+.wp-block-gallery.gallery-carousel {
+  display: block; /* Override grid for carousel */
+  overflow: hidden;
+  border-radius: 16px;
+  position: relative;
+}
+
+.wp-gallery-track {
+  display: flex;
+  gap: 2px !important;
+  padding: 6px;
+  scroll-snap-type: x mandatory;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.wp-gallery-track::-webkit-scrollbar {
+  display: none;
+}
+
+.wp-gallery-track figure {
+  min-width: 60vw;
+  max-width: 60vw;
+  flex: 0 0 auto;
+  scroll-snap-align: center;
+  aspect-ratio: 4 / 3; /* Maintain consistent carousel item height */
+}
+
+.wp-gallery-track img {
+  border-radius: 16px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Carousel buttons */
+.wp-gallery-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border: 2px solid #fdb562;
+  color: #fdb562;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.wp-gallery-btn:hover {
+  opacity: 1;
+  background: #fdb562;
+  color: #000;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.wp-gallery-btn.prev { 
+  left: 12px; 
+}
+
+.wp-gallery-btn.next { 
+  right: 12px; 
+}
+
+/* =============== RESPONSIVE BREAKPOINTS =============== */
+
+/* Tablets and smaller */
+@media (max-width: 1024px) {
+  .wp-block-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  
+  .wp-block-gallery.has-nested-images.columns-default figure.wp-block-image {
+    min-width: 250px;
+  }
+  
+  .wp-block-gallery img {
+    border-radius: 12px;
+  }
+}
+
+/* Mobile devices */
+@media (max-width: 768px) {
+  .wp-block-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 3px !important;
+  }
+  
+  .wp-block-gallery.has-nested-images.columns-default figure.wp-block-image {
+    min-width: 180px;
+  }
+  
+  .wp-block-gallery img {
+    border-radius: 8px;
+  }
+  
+  .wp-block-gallery figure:hover img {
+    transform: scale(1.03); /* Reduce zoom on mobile */
+  }
+  
+  .wp-gallery-track figure {
+    min-width: 90vw;
+    max-width: 90vw;
+  }
+  
+  .wp-gallery-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  
+  .wp-gallery-btn.prev { 
+    left: 8px; 
+  }
+  
+  .wp-gallery-btn.next { 
+    right: 8px; 
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .wp-block-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 2px !important;
+  }
+  
+  .wp-block-gallery img {
+    border-radius: 6px;
+  }
+  
+  .wp-gallery-track figure {
+    min-width: 92vw;
+    max-width: 92vw;
+  }
+  
+  .wp-gallery-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    border-width: 1.5px;
+  }
+}
+
+/* =============== BONUS POLISH =============== */
+.wp-block-calendar,
+.wp-block-table,
+.wp-block-embed,
+.wp-block-audio,
+.wp-block-video {
+  margin: 2rem 0;
+  border-radius: 1.2rem;
+  overflow: hidden;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Mobile responsive for bonus blocks */
+@media (max-width: 768px) {
+  .wp-block-calendar,
+  .wp-block-table,
+  .wp-block-embed,
+  .wp-block-audio,
+  .wp-block-video {
+    margin: 1.5rem 0;
+    border-radius: 0.8rem;
+  }
+}
+
+/* Kill Gutenberg comment spam */
+.wp-block-comment,
+*[class^="wp-block-"] > .wp-block-comment {
+  display: none !important;
+}
+
+/* =============== TOUCH DEVICE OPTIMIZATION =============== */
+@media (hover: none) and (pointer: coarse) {
+  /* Disable hover effects on touch devices */
+  .wp-block-gallery figure:hover img {
+    transform: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .wp-gallery-btn:hover {
+    transform: translateY(-50%);
+    opacity: 0.8;
+  }
+}

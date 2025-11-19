@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" role="img" aria-labelledby="title">
+  <title>Big Tooth Comb Logo</title>
+  <defs>
+    <linearGradient id="shade" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#121212"/>
+      <stop offset="100%" stop-color="#000"/>
+    </linearGradient>
+  </defs>
+  <path d="M80 70a70 70 0 0 1 70-70h900a70 70 0 0 1 70 70v430a70 70 0 0 1-70 70H150a70 70 0 0 1-70-70Z" fill="url(#shade)"/>
+  <rect x="110" y="150" width="980" height="320" rx="24" ry="24" fill="#f7f7f7"/>
+  <path d="M140 150h920v320H140z" fill="#0a0a0a"/>
+  <text x="50%" y="390" fill="#f7f7f7" font-family="'Creepster','Orbitron','Roboto Mono',system-ui,sans-serif" font-size="220" font-weight="900" text-anchor="middle" letter-spacing="4">
+    BIG TOOTH COMB
+  </text>
+</svg>

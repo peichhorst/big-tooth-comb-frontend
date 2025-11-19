@@ -1,0 +1,10 @@
+schema: ${NEXT_PUBLIC_GRAPHQL_URL}
+documents: "src/**/*.graphql"
+generates:
+  src/gql/generated.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-query
+    config:
+      fetcher: "../lib/graphql#gqlFetch"
