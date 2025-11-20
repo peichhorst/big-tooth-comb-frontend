@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_WP_URL + '/wp-json/wp/v2';
+const WP_BASE_URL = process.env.NEXT_PUBLIC_WP_URL ?? "https://btc.858webdesign.com";
+const API_URL = `${WP_BASE_URL.replace(/\/$/, "")}/wp-json/wp/v2`;
 
 export async function fetchPosts(limit = 5) {
   try {

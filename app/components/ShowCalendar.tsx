@@ -22,6 +22,7 @@ export default function ShowCalendar({ events }: { events: CalendarEvent[] }) {
       url: ev.slug ? `/shows/${ev.slug}` : undefined,
       classNames: ev.ticketsUrl ? "has-tickets" : "sold-out",
     }));
+  const eventDateSet = new Set(calendarEvents.map((ev) => ev.start));
 
   return (
     <FullCalendar
@@ -40,9 +41,19 @@ export default function ShowCalendar({ events }: { events: CalendarEvent[] }) {
           window.location.href = info.event.url;
         }
       }}
-      dayCellContent={(arg) => (
-        <div className="text-blood-400 font-bold">{arg.dayNumberText}</div>
-      )}
+      dayCellContent={(arg) => {
+        const dateKey = arg.date.toISOString().split("T")[0];
+        const hasEvent = eventDateSet.has(dateKey);
+        return (
+          <div
+            className={`fc-daygrid-day-number font-bold ${
+              hasEvent ? "has-event-number" : ""
+            }`}
+          >
+            {arg.dayNumberText}
+          </div>
+        );
+      }}
       eventClassNames="cursor-pointer hover:opacity-80 transition"
       dayCellClassNames={(arg) => {
         const hasEvent = calendarEvents.some((event) => event.start === arg.dateStr);

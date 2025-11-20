@@ -1,405 +1,259 @@
 'use client';
 
+import Image from "next/image";
 import { useState, useEffect, useRef } from 'react';
 import * as Tone from 'tone';
 
-const titleFromUrl = (url) => {
-  try {
-    const name = url.split('/').pop() || '';
-    return decodeURIComponent(name.replace(/\.(mp3|m4a|ogg|wav)$/i, ''));
-  } catch {
-    return url;
-  }
-};
-
 export default function MusicPlayer() {
-  // dynamic playlist from API
-  const [playlist, setPlaylist] = useState([]);
-
+  const [tracks, setTracks] = useState([]);           // [{ url: string, title: string|null }]
+  const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [volume, setVolume] = useState(-6); // dB
-  const [activeTrackIndex, setActiveTrackIndex] = useState(0);
+  const [volume, setVolume] = useState(-6);
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
 
-  const player = useRef(null);
-  const gainNode = useRef(null);
-
-  // refs to avoid stale closures
+  const playerRef = useRef(null);
+  const gainNodeRef = useRef(null);
   const isPlayingRef = useRef(false);
   const durationRef = useRef(0);
-  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
-  useEffect(() => { durationRef.current = duration; }, [duration]);
-
-  // timing
-  const startTimeRef = useRef(0);   // performance.now() seconds when started
-  const offsetRef = useRef(0);      // paused offset seconds
+  const offsetRef = useRef(0);
+  const startTimeRef = useRef(0);
   const rafRef = useRef(null);
-  const manualStopRef = useRef(false);
-  const autoplayNextRef = useRef(false);
 
-  const nowSec = () => performance.now() / 1000;
+  const now = () => performance.now() / 1000;
 
-  const getPosition = () => {
-    const dur = durationRef.current || 0;
-    if (!player.current) return 0;
-    if (isPlayingRef.current) {
-      const elapsed = nowSec() - startTimeRef.current;
-      return Math.min(offsetRef.current + elapsed, dur);
+  const updatePosition = () => {
+    if (!isPlayingRef.current) {
+      setPosition(offsetRef.current);
+      return;
     }
-    return Math.min(offsetRef.current, dur);
-  };
+    const elapsed = now() - startTimeRef.current;
+    const pos = Math.min(offsetRef.current + elapsed, durationRef.current);
+    setPosition(pos);
 
-  const startRaf = () => {
-    cancelAnimationFrame(rafRef.current);
-    const tick = () => {
-      const dur = durationRef.current || 0;
-      const pos = getPosition();
-      setPosition(pos);
-
-      // Fallback auto-advance
-      if (isPlayingRef.current && dur > 0 && pos >= dur - 0.05) {
-        setIsPlaying(false);
-        isPlayingRef.current = false;
-        cancelAnimationFrame(rafRef.current);
-        autoplayNextRef.current = true;
-        setActiveTrackIndex((i) => (i + 1) % playlist.length);
-        return;
-      }
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
-  };
-
-  const stopRaf = () => {
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = null;
-  };
-
-  const loadAndPrepareTrack = async (url) => {
-    if (player.current) {
-      manualStopRef.current = true;
-      player.current.stop();
-      player.current.dispose();
-      player.current = null;
+    if (durationRef.current > 0 && pos >= durationRef.current - 0.1) {
+      handleNext();
+    } else {
+      rafRef.current = requestAnimationFrame(updatePosition);
     }
+  };
+
+  const loadTrack = async (url) => {
+    if (!gainNodeRef.current || !url) return;
+
+    if (playerRef.current) {
+      playerRef.current.stop();
+      playerRef.current.dispose();
+    }
+
     setIsLoaded(false);
     offsetRef.current = 0;
     setPosition(0);
 
-    const newPlayer = new Tone.Player({
+    const player = new Tone.Player({
       url,
       autostart: false,
-      loop: false,
-      volume: -12,
-    }).connect(gainNode.current);
+      onload: () => {
+        const dur = player.buffer?.duration || 0;
+        setDuration(dur);
+        durationRef.current = dur;
+        setIsLoaded(true);
 
-    await newPlayer.load(url);
-    player.current = newPlayer;
+        if (isPlayingRef.current) {
+          Tone.start();
+          player.start();
+          startTimeRef.current = now();
+          updatePosition();
+        }
+      },
+    }).connect(gainNodeRef.current);
 
-    const dur = newPlayer.buffer?.duration || 0;
-    setDuration(dur);
-    durationRef.current = dur;
-
-    newPlayer.onstop = () => {
-      const endedNaturally =
-        !manualStopRef.current &&
-        durationRef.current > 0 &&
-        getPosition() >= durationRef.current - 0.1;
-
-      if (endedNaturally) {
-        setIsPlaying(false);
-        isPlayingRef.current = false;
-        stopRaf();
-        autoplayNextRef.current = true;
-        setActiveTrackIndex((i) => (i + 1) % playlist.length);
-      }
-      manualStopRef.current = false;
-    };
-
-    setIsLoaded(true);
-
-    // Autoplay if previously playing or flagged (playlist click/next/prev)
-    const shouldAuto = isPlayingRef.current || autoplayNextRef.current;
-    if (shouldAuto) {
-      await Tone.start();
-      startTimeRef.current = nowSec();
-      manualStopRef.current = false;
-      newPlayer.start(undefined, 0);
-      setIsPlaying(true);
-      isPlayingRef.current = true;
-      startRaf();
-    }
-    autoplayNextRef.current = false;
+    playerRef.current = player;
+    await player.load(url);
   };
 
-  // 1) create gain node once
-  useEffect(() => {
-    gainNode.current = new Tone.Volume(volume).toDestination();
-    return () => {
-      stopRaf();
-      if (player.current) {
-        manualStopRef.current = true;
-        player.current.stop();
-        player.current.dispose();
-      }
-      if (gainNode.current) gainNode.current.dispose();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // 2) fetch playlist on mount
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(
-          'https://backend.petereichhorst.com/wp-json/audio/v1/list?sort=mtime_desc'
-        );
-        const data = await res.json(); // [{url, name, ...}]
-        const urls = (Array.isArray(data) ? data : []).map((item) => item.url).reverse();
-        setPlaylist(urls);
-        if (urls.length > 0) setActiveTrackIndex(0);
-      } catch (e) {
-        console.error('Failed to load playlist', e);
-      }
-    })();
-  }, []);
-
-  // 3) when playlist arrives (or changes), load current track
-  useEffect(() => {
-    if (playlist.length > 0 && gainNode.current) {
-      loadAndPrepareTrack(playlist[activeTrackIndex]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playlist]);
-
-  // 4) when activeTrackIndex changes, load that track
-  useEffect(() => {
-    if (playlist.length > 0) loadAndPrepareTrack(playlist[activeTrackIndex]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTrackIndex]);
-
-  // volume change
-  useEffect(() => {
-    if (gainNode.current) gainNode.current.volume.value = volume;
-  }, [volume]);
-
-  const handleToggle = async () => {
-    if (!isLoaded || !player.current) return;
-
-    if (!isPlayingRef.current) {
-      await Tone.start();
-      startTimeRef.current = nowSec();
-      manualStopRef.current = false;
-      player.current.start(undefined, offsetRef.current);
-      setIsPlaying(true);
-      isPlayingRef.current = true;
-      startRaf();
-    } else {
-      manualStopRef.current = true;
-      player.current.stop();
-      offsetRef.current = getPosition();
-      setPosition(offsetRef.current);
-      setIsPlaying(false);
-      isPlayingRef.current = false;
-      stopRaf();
-    }
+  const play = async () => {
+    if (!playerRef.current || !isLoaded) return;
+    await Tone.start();
+    playerRef.current.start(undefined, offsetRef.current);
+    startTimeRef.current = now() - offsetRef.current;
+    isPlayingRef.current = true;
+    setIsPlaying(true);
+    updatePosition();
   };
 
-  const handleNextTrack = () => {
-    if (!playlist.length) return;
-    setIsPlaying(false);
+  const pause = () => {
+    if (!playerRef.current) return;
+    playerRef.current.stop();
+    offsetRef.current = position;
     isPlayingRef.current = false;
-    stopRaf();
-    autoplayNextRef.current = true;
-    setActiveTrackIndex((i) => (i + 1) % playlist.length);
-  };
-
-  const handlePreviousTrack = () => {
-    if (!playlist.length) return;
     setIsPlaying(false);
-    isPlayingRef.current = false;
-    stopRaf();
-    autoplayNextRef.current = true;
-    setActiveTrackIndex((i) => (i - 1 + playlist.length) % playlist.length);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
   };
 
-  const handlePickTrack = (index) => {
-    if (index === activeTrackIndex) {
-      if (!isPlayingRef.current && isLoaded) handleToggle();
-      return;
-    }
-    stopRaf();
-    autoplayNextRef.current = true;
+  const handleNext = () => {
+    setActiveIndex((i) => (i + 1) % tracks.length);
     offsetRef.current = 0;
     setPosition(0);
-    setActiveTrackIndex(index);
   };
 
-  // seek
-  const handleSeek = async (e) => {
-    const target = Number(e.target.value);
-    const dur = durationRef.current || 0;
-    offsetRef.current = Math.max(0, Math.min(target, dur));
-    setPosition(offsetRef.current);
+  const handlePrev = () => {
+    setActiveIndex((i) => (i - 1 + tracks.length) % tracks.length);
+    offsetRef.current = 0;
+    setPosition(0);
+  };
 
-    if (!player.current) return;
-
-    if (isPlayingRef.current) {
-      manualStopRef.current = true;
-      player.current.stop();
-      await Tone.start();
-      startTimeRef.current = nowSec();
-      manualStopRef.current = false;
-      player.current.start(undefined, offsetRef.current);
-      // RAF already running
+  const handleSeek = (e) => {
+    const value = Number(e.target.value);
+    offsetRef.current = value;
+    setPosition(value);
+    if (isPlayingRef.current && playerRef.current) {
+      playerRef.current.stop();
+      playerRef.current.start(undefined, value);
+      startTimeRef.current = now() - value;
     }
   };
 
-  const fmt = (s) => {
-    if (!isFinite(s)) s = 0;
-    const m = Math.floor(s / 60);
-    const ss = Math.floor(s % 60);
-    return `${m}:${ss.toString().padStart(2, '0')}`;
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const activeUrl = playlist[activeTrackIndex] || '';
-  const activeTitle = titleFromUrl(activeUrl);
+  // Fetch playlist from our fixed API
+  useEffect(() => {
+    fetch("/api/playlist")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.tracks) && data.tracks.length > 0) {
+          setTracks(data.tracks);
+          setActiveIndex(0);
+        }
+      })
+      .catch((err) => console.error("Playlist failed", err));
+  }, []);
+
+  // Load current track when index changes
+  useEffect(() => {
+    if (tracks.length > 0 && tracks[activeIndex]?.url) {
+      loadTrack(tracks[activeIndex].url);
+    }
+  }, [activeIndex, tracks]);
+
+  // Volume control
+  useEffect(() => {
+    if (gainNodeRef.current) gainNodeRef.current.volume.value = volume;
+  }, [volume]);
+
+  // Create gain node once
+  useEffect(() => {
+    gainNodeRef.current = new Tone.Volume(volume).toDestination();
+    return () => {
+      gainNodeRef.current?.dispose();
+      playerRef.current?.dispose();
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  const currentTrack = tracks[activeIndex] || {};
+  const title = currentTrack.title || "Loading...";
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <div
-        className="flex flex-col items-center gap-3 p-2 rounded-2xl shadow-2xl backdrop-blur-md max-w-[52vw]"
-        style={{
-          background: 'rgba(var(--color-bg-dark-rgb), 0.7)',
-          border: '1px solid rgba(var(--color-accent-rgb), 0.2)',
-          color: 'var(--color-text)',
-        }}
-      >
-        {/* Active title */}
-        <span className="font-bold text-lg text-center opacity-80 px-3">
-          {playlist.length ? activeTitle : 'Loading...'}
-        </span>
+    <div className="music-player fixed bottom-6 right-6 z-50">
+      <div className="bg-black/95 backdrop-blur-lg border border-orange-900/50 rounded-3xl p-6 shadow-2xl max-w-md w-full text-white">
+
+        {/* Title */}
+        <div className="text-orange-400 font-bold text-xl truncate mb-4">
+          {title}
+        </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handlePreviousTrack}
-            className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:opacity-80"
-            style={{ background: 'rgba(var(--color-accent-rgb), 0.1)', color: 'var(--color-text)' }}
-            disabled={!isLoaded || !playlist.length}
-            aria-label="Previous"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        <div className="flex items-center justify-center gap-6 mb-4">
+          <button onClick={handlePrev} disabled={tracks.length === 0} className="text-orange-400 hover:text-orange-300 disabled:opacity-50">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </button>
 
           <button
-            onClick={handleToggle}
-            className={`w-14 h-14 flex items-center justify-center rounded-full shadow-lg transition-all ${
-              isPlaying ? 'animate-pulse' : 'hover:scale-110'
-            }`}
-            style={{ background: 'var(--color-accent)', color: 'var(--color-bg-dark)' }}
-            disabled={!isLoaded || !playlist.length}
-            aria-label={isPlaying ? 'Pause' : 'Play'}
+            onClick={() => (isPlaying ? pause() : play())}
+            disabled={!isLoaded}
+            className="w-16 h-16 bg-orange-600 hover:bg-orange-500 rounded-full flex items-center justify-center shadow-xl transition disabled:opacity-50"
           >
             {isLoaded ? (
               isPlaying ? (
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6 6h12v12H6z" />
+                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
                 </svg>
               ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z" />
                 </svg>
               )
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348l1.71-1.71a3.75 3.75 0 115.304 5.304L19.22 17.514m-1.258-2.538a2.502 2.502 0 01-1.259-2.502l2.502-1.259m3.351.986l-1.675-1.675a3.75 3.75 0 10-5.304 5.304L7.486 17.72c.451.981 1.259 1.79 2.24 2.24a2.502 2.502 0 012.502 1.259l1.259 2.502" />
-              </svg>
+              <Image src="/comb-circle.png" width={40} height={40} alt="Loading" className="animate-spin" />
             )}
           </button>
 
-          <button
-            onClick={handleNextTrack}
-            className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:opacity-80"
-            style={{ background: 'rgba(var(--color-accent-rgb), 0.1)', color: 'var(--color-text)' }}
-            disabled={!isLoaded || !playlist.length}
-            aria-label="Next"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          <button onClick={handleNext} disabled={tracks.length === 0} className="text-orange-400 hover:text-orange-300 disabled:opacity-50">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
           </button>
         </div>
 
-        {/* Seekable progress */}
-        <div className="w-full flex items-center gap-2">
-          <span className="text-[11px] opacity-70 w-10 text-right">{fmt(position)}</span>
+        {/* Progress */}
+        <div className="mb-4">
+          <div className="flex justify-between text-xs text-gray-400 mb-1">
+            <span>{formatTime(position)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
           <input
             type="range"
-            min={0}
-            max={Math.max(duration, 0.01)}
-            step={0.01}
-            value={Math.min(position, duration || 0)}
+            min="0"
+            max={duration || 0.01}
+            step="0.1"
+            value={position}
             onChange={handleSeek}
-            className="w-full h-1 bg-gray-500 rounded-lg appearance-none cursor-pointer"
-            style={{ accentColor: 'var(--color-accent)' }}
+            className="w-full h-2 bg-gray-700 rounded-full appearance-none cursor-pointer accent-orange-600"
             disabled={!isLoaded}
-            aria-label="Seek"
           />
-          <span className="text-[11px] opacity-70 w-10">{fmt(duration)}</span>
         </div>
 
-        {/* Playlist */}
-        <div className="w-full" title="Playlist" aria-label="Playlist">
-          <div className="flex flex-wrap justify-center items-center gap-2">
-            {playlist.map((url, idx) => {
-              const label = titleFromUrl(url);
-              const isActive = idx === activeTrackIndex;
-              return (
-                <button
-                  key={url}
-                  onClick={() => handlePickTrack(idx)}
-                  className={`px-3 py-1.5 rounded-full text-xs md:text-sm transition-all border ${
-                    isActive ? 'font-semibold' : 'opacity-80 hover:opacity-100'
-                  }`}
-                  style={{
-                    background: isActive ? 'var(--color-accent)' : 'rgba(var(--color-accent-rgb), 0.08)',
-                    color: isActive ? 'var(--color-bg-dark)' : 'var(--color-text)',
-                    borderColor: 'rgba(var(--color-accent-rgb), 0.25)',
-                  }}
-                  aria-current={isActive ? 'true' : 'false'}
-                  title={label}
-                >
-                  {label}
-                </button>
-              );
-            })}
+        {/* Playlist Chips */}
+        <div className="max-h-48 overflow-y-auto">
+          <div className="flex flex-wrap gap-2 justify-center">
+            {tracks.map((track, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveIndex(i)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  i === activeIndex
+                    ? "bg-orange-600 text-black shadow-lg"
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                {track.title || `Track ${i + 1}`}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Volume */}
-        <div className="w-full flex items-center gap-2">
-          <span aria-hidden className="inline-flex items-center justify-center w-5 h-5 opacity-75">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M5 9v6h4l5 4V5L9 9H5z" />
-              <path d="M16.5 8.5a4 4 0 010 7" />
-            </svg>
-          </span>
+        <div className="mt-4 flex items-center gap-3">
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 9v6h4l5 4V5L9 9H5z" />
+          </svg>
           <input
             type="range"
-            min="-24"
-            max="0"
-            step="1"
+            min="-30"
+            max="6"
             value={volume}
-            onChange={(e) => setVolume(+e.target.value)}
-            style={{ accentColor: 'var(--color-accent)' }}
-            className="w-full h-1 bg-gray-500 rounded-lg appearance-none cursor-pointer"
-            title="Volume"
-            disabled={!isLoaded}
+            onChange={(e) => setVolume(Number(e.target.value))}
+            className="flex-1 h-2 bg-gray-700 rounded-full appearance-none cursor-pointer accent-orange-600"
           />
         </div>
       </div>

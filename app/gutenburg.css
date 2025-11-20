@@ -29,6 +29,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1; /* Ensures consistent height */
+  cursor: zoom-in;
 }
 
 /* Additional targeting for nested images */
@@ -47,6 +48,7 @@
   border-radius: 0;
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  cursor: inherit;
 }
 
 /* Ensure nested images fill properly */
@@ -55,6 +57,20 @@
   height: 100% !important;
   max-width: none !important;
   flex: none !important;
+}
+
+.wp-block-image {
+  width: 100% !important;
+}
+.wp-block-image figure {
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+.wp-block-image img {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
 }
 
 .wp-block-gallery figure:hover img {
@@ -218,12 +234,12 @@
     max-width: 92vw;
   }
   
-  .wp-gallery-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-    border-width: 1.5px;
-  }
+.wp-gallery-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  border-width: 1.5px;
+}
 }
 
 /* =============== BONUS POLISH =============== */
@@ -269,4 +285,147 @@
     transform: translateY(-50%);
     opacity: 0.8;
   }
+}
+
+/* =============== HEADING BANNERS =============== */
+.wp-block-heading {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: linear-gradient(135deg, #f2851f, #ffb45a);
+  color: #120600 !important;
+  padding: 1.5rem 1rem;
+  border-radius: 0 0 32px 32px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 900;
+  margin: 3rem auto 2rem;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45), 0 0 30px rgba(242, 133, 31, 0.35);
+  border: 2px solid rgba(0, 0, 0, 0.15);
+}
+
+.wp-block-heading strong {
+  color: inherit;
+}
+
+.wp-block-heading + * {
+  margin-top: 1.5rem;
+}
+
+/* =============== LIGHTBOX =============== */
+.wp-gallery-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 3, 3, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.wp-gallery-lightbox.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.wp-gallery-lightbox__inner {
+  position: relative;
+  width: min(1100px, 90vw);
+  max-height: 90vh;
+  background: rgba(8, 8, 8, 0.95);
+  border-radius: 32px;
+  border: 1px solid rgba(242, 133, 31, 0.4);
+  padding: clamp(1rem, 3vw, 2.75rem);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.65), 0 0 35px rgba(242, 133, 31, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.wp-gallery-lightbox figure {
+  margin: 0;
+}
+
+.wp-gallery-lightbox__inner figure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wp-gallery-lightbox img {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 22px;
+  box-shadow: 0 25px 45px rgba(0, 0, 0, 0.55);
+}
+
+.wp-gallery-lightbox__caption {
+  text-align: center;
+  color: #f7f7f7;
+  font-size: 0.95rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.wp-gallery-lightbox__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.65);
+  color: white;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.wp-gallery-lightbox__close:hover {
+  background: #f2851f;
+  color: #110400;
+  transform: scale(1.05);
+}
+
+.wp-gallery-lightbox__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fefefe;
+  font-size: 2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.wp-gallery-lightbox__nav.prev {
+  left: 0.75rem;
+}
+.wp-gallery-lightbox__nav.next {
+  right: 0.75rem;
+}
+
+.wp-gallery-lightbox__nav:hover {
+  background: #f2851f;
+  color: #110400;
+  transform: translateY(-50%) scale(1.05);
+}
+
+body.wp-lightbox-open {
+  overflow: hidden;
 }
