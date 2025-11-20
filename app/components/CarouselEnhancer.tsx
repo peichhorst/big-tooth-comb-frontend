@@ -141,8 +141,8 @@ export default function CarouselEnhancer() {
           data.src ||
           galleryImg.getAttribute("data-full-url") ||
           galleryImg.getAttribute("data-large-file") ||
-          galleryImg.currentSrc ||
-          galleryImg.src;
+          (galleryImg as HTMLImageElement).currentSrc ||
+          (galleryImg as HTMLImageElement).src;
         const cap =
           galleryImg.closest("figure")?.getAttribute("aria-label")?.trim() ||
           galleryImg.closest("figure")?.querySelector("figcaption")?.textContent?.trim() ||
