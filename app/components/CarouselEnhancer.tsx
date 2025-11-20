@@ -190,9 +190,9 @@ export default function CarouselEnhancer() {
 
     const attachLightbox = (gallery: Element) => {
       if (lightboxReady.has(gallery)) return;
-      gallery.addEventListener("click", handleLightboxClick);
+      gallery.addEventListener("click", handleLightboxClick as EventListener);
       lightboxReady.add(gallery);
-      cleanupFns.push(() => gallery.removeEventListener("click", handleLightboxClick));
+      cleanupFns.push(() => gallery.removeEventListener("click", handleLightboxClick as EventListener));
     };
 
     const enhance = () => {
