@@ -133,7 +133,7 @@ export default function CarouselEnhancer() {
 
       activeGallery = gallery;
       galleryImages = Array.from(gallery.querySelectorAll("figure img")).map((galleryImg) => {
-        const data = galleryImg.dataset || {};
+        const data = (galleryImg as HTMLElement & { dataset: DOMStringMap }).dataset || {};
         const fullSrc =
           data.fullUrl ||
           data.fullsizeImage ||
