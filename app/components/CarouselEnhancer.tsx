@@ -147,9 +147,10 @@ export default function CarouselEnhancer() {
           galleryImg.closest("figure")?.getAttribute("aria-label")?.trim() ||
           galleryImg.closest("figure")?.querySelector("figcaption")?.textContent?.trim() ||
           "";
+        const imgElement = galleryImg as HTMLImageElement;
         return {
           src: fullSrc || "",
-          alt: galleryImg.alt || cap || "Gallery image",
+          alt: imgElement.alt || cap || "Gallery image",
           caption: cap,
         };
       });
